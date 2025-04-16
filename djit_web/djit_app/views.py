@@ -8,3 +8,11 @@ def this_may_be_any_name(request):
 def this_etc(request):
     template = loader.get_template('greet.html')
     return HttpResponse(template.render())
+
+def main_page(request):
+    template = loader.get_template('mainpage.html')
+    return HttpResponse(template.render())
+
+def guide_first_setup(request):
+    template = loader.get_template('guidefirstsetup.html')
+    return HttpResponse(template.render())

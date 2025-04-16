@@ -11,3 +11,6 @@ class Member(models.Model):
   joined_date = models.DateField()
 
 
+# to-do repo class
+# to-do incude users in it
+
