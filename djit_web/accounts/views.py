@@ -1,4 +1,5 @@
 # accounts/views.py
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
@@ -12,7 +13,16 @@ class SignUpView(CreateView):
     template_name = "registration/signup.html"
 
 
+@login_required(login_url='/auth/login/')
 def profile_information(request):
     template = loader.get_template('registration/profile.html')
-    return HttpResponse(template.render())
+    user = request.user
+    reps = user.djituser.repositories.all()
+
+    context = {
+        'user' : user,
+        'repositories':reps
+    }
+
+    return HttpResponse(template.render(context,request))
 
