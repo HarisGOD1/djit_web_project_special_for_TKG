@@ -6,5 +6,6 @@ from . import views
 urlpatterns = [
     path("signup/", views.SignUpView.as_view(), name="signup"), #to-do make username rules (exlude @,+,-,_,.)
     path('profile/',views.profile_information,name='name_for_profile_page'),
+    path('sshkey_add_edit/', views.add_or_edit_ssh_key, name='name_for_sshkey_add_edit'),
 
 ]

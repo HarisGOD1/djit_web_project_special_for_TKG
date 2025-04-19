@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class Repository(models.Model):
   repository_name = models.CharField(max_length=255)
   repository_description = models.CharField(max_length=511)
-  repository_privacy = models.BooleanField() # true - private false - public
+  repository_privacy = models.BooleanField(default=True) # true - private false - public
 
 
   owner_name = models.CharField(max_length=255)
@@ -21,5 +21,6 @@ class Repository(models.Model):
 class DjitUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.CharField(max_length=255)
+    isSSHSetup = models.BooleanField(default=False)
     repositories = models.ManyToManyField(Repository)
 
