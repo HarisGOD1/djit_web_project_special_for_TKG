@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+from .senseful_strings import thegodpsql_pswd
 # from djit_web import senseful_strings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -87,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'djitwebdb',
         'USER': 'postgres',
-        'PASSWORD': '',
+        'PASSWORD': thegodpsql_pswd,
         'HOST': '127.0.0.1',
         'PORT': '5432'
     }
