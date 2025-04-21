@@ -3,7 +3,7 @@ import socket
 
 # Define the server address and port
 HOST = '127.0.0.1'  # Localhost or the IP of the machine running the server
-PORT = 65399    # The same port the server is listening on
+PORT = 65400    # The same port the server is listening on
 
 def send(data):
     # Create a TCP/IP socket

@@ -98,13 +98,15 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fab fa-github me-2"></i>Djit
-            </a>
-        </div>
-    </nav>
+<!--    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">-->
+<!--        <div class="container">-->
+<!--            <a class="navbar-brand" href="#">-->
+<!--                <i class="fab fa-github me-2"></i>Djit-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </nav>-->
+
+    {% include "headerchunk.html" %}
 
     <!-- Main Content -->
     <div class="container">
@@ -113,9 +115,10 @@
                 <h2><i class="fab fa-github me-2"></i>Create your account</h2>
             </div>
 
-            <form method="post">
+            <form method="post" class="form-group">
                 {% csrf_token %}
                 {{ form }}
+                <br/>
                 <button type="submit" class="btn btn-signup">Sign up</button>
             </form>
 

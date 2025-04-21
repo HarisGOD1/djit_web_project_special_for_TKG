@@ -80,18 +80,44 @@
         .login-footer a:hover {
             text-decoration: underline;
         }
+        .navbar-custom {
+            background-color: #24292e;
+        }
+        .guide-section {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .step-number {
+            background-color: #0366d6;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        .sidebar {
+            background-color: #f6f8fa;
+            padding: 20px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fab fa-github me-2"></i>Djit
-            </a>
-        </div>
-    </nav>
+<!--    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">-->
+<!--        <div class="container">-->
+<!--            <a class="navbar-brand" href="/">-->
+<!--                <i class="fab fa-github me-2"></i>Djit-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </nav>-->
 
+    {% include "headerchunk.html" %}
     <!-- Main Content -->
     <div class="container">
         <div class="login-container">
