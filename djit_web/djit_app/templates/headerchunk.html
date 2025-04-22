@@ -21,6 +21,21 @@
 <!--                <form class="d-flex me-3">-->
 <!--                    <input class="form-control me-2" type="search" placeholder="Search repositories...">-->
 <!--                </form>-->
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/profile"><i class="fas fa-user me-1"></i>{{ user.username }}</a>
+                    </li>
+                    <li>
+                            <div class ="nav-item">
+                                <form action="{% url 'logout' %}" method="post">
+                                            {% csrf_token %}
+                                        <button type="submit" class="btn" style="color:#9c9ea0">Log Out</button>
+                                </form>
+                            </div>
+                    </li>
+                </ul>
+                {% else %}
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="/auth/signup"><i class="fas fa-plus me-1"></i>New</a>
@@ -29,6 +44,8 @@
                         <a class="nav-link" href="/auth/login"><i class="fas fa-user me-1"></i>Login</a>
                     </li>
                 </ul>
+                {% endif %}
+
             </div>
         </div>
     </nav>
