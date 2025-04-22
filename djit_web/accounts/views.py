@@ -7,7 +7,8 @@ from django.views.generic import CreateView
 from django.http import HttpResponse
 from django.template import loader
 
-from . import ACLManagerClient
+from .terminalAPI import sshkey_manager
+from .terminalAPI import repository_manager
 from .forms import SSHKeyForm, RepoCreateForm
 from .models import Repository, DjitUser
 
@@ -46,7 +47,8 @@ def add_or_edit_ssh_key(request):
         sshkey_val = request.POST['sshkey']
         user.djituser.isSSHSetup=True
         user.djituser.save()
-        response = ACLManagerClient.send(f'setup_ssh_for_user:{user.username}:{sshkey_val}')
+
+        response = sshkey_manager.save_ssh(user.username,sshkey_val)
         return HttpResponse(f"Hello, {user.username}.\n{response}")
 
     else:
@@ -91,7 +93,7 @@ def create_repository(request):
             repo.save()
             user.djituser.repositories.add(repo)
             user.djituser.save()
-            response = ACLManagerClient.send(f'create_u_repository:{user.username}:{reponame}')
+            response = repository_manager.create_user_repository(user.username,reponame)
 
             return HttpResponse(f"Hello, {user.username}.\n{response}")
         else:
