@@ -4,13 +4,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
 from .terminalAPI import sshkey_manager
 from .terminalAPI import repository_manager
 from .forms import SSHKeyForm, RepoCreateForm
 from .models import Repository, DjitUser
+from .terminalAPI.repository_manager import get_content_from_path, get_file_from_path
 
 
 class SignUpView(CreateView):
@@ -110,7 +111,7 @@ def create_repository(request):
 
     return HttpResponse(template.render(context,request))
 
-# @login_required(login_url='/auth/login/')
+@login_required(login_url='/auth/login/')
 def show_repository(request):
     template = loader.get_template('registration/repo_contents.html')
     
@@ -119,25 +120,17 @@ def show_repository(request):
     repo_name = request.GET.get('r')
     path = request.GET.get('p', '')  # Default to root if no path provided
     
-    # TODO: Add code to fetch repository contents
-    # This is where you'll need to implement the logic to get files and directories
-    # The contents should be a list of dictionaries with:
-    # - type: 'file' or 'directory'
-    # - path: full path of the item
-    # - name: display name of the item
-    lst = repository_manager.get_content_from_path(username,repo_name,path)
-    contents = [
-        # Example structure:
-        # {'type': 'directory', 'path': 'src', 'name': 'src'},
-        # {'type': 'file', 'path': 'README.md', 'name': 'README.md'},
-    ]
-    print(lst)
+    # Get repository contents
+    lst = get_content_from_path(username, repo_name, path)
+    contents = []
     for e in lst:
-        contents.append({'type':'directory' if e[0]=='tree' else 'file',
-                         'path':path+'/'+e[1],
-                         'name':e[1]})
+        contents.append({
+            'type': 'directory' if e[0] == 'tree' else 'file',
+            'path': path + '/' + e[1] if path else e[1],
+            'name': e[1]
+        })
+    
     # Split path into parts for breadcrumb navigation
-    print(contents)
     path_parts = []
     if path:
         current_path = ''
@@ -156,4 +149,49 @@ def show_repository(request):
     }
     
     return HttpResponse(template.render(context, request))
+
+@login_required(login_url='/auth/login/')
+def get_repository_contents(request):
+    # Get parameters from request
+    username = request.GET.get('u')
+    repo_name = request.GET.get('r')
+    path = request.GET.get('p', '')  # Default to root if no path provided
+    
+    # Get repository contents
+    lst = get_content_from_path(username, repo_name, path)
+    contents = []
+    for e in lst:
+        contents.append({
+            'type': 'directory' if e[0] == 'tree' else 'file',
+            'path': path + '/' + e[1] if path else e[1],
+            'name': e[1]
+        })
+    
+    return JsonResponse(contents, safe=False)
+
+@login_required(login_url='/auth/login/')
+def show_file(request):
+    template = loader.get_template('registration/fileshow.html')
+    
+    # Get parameters from request
+    username = request.GET.get('u')
+    repo_name = request.GET.get('r')
+    path = request.GET.get('p', '')
+    
+    # Get file content
+    file_content = get_file_from_path(username, repo_name, path)
+    
+    # Get file name from path
+    file_name = path.split('/')[-1] if path else ''
+    
+    context = {
+        'username': username,
+        'repo_name': repo_name,
+        'file_name': file_name,
+        'file_content': file_content,
+        'path': path
+    }
+    
+    return HttpResponse(template.render(context, request))
+
 

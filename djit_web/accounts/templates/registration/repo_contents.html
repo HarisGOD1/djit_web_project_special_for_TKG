@@ -126,16 +126,23 @@
                             } else {
                                 // Load directory contents if not already loaded
                                 if (!dirContents.hasAttribute('data-loaded')) {
-                                    // Make a request to the show_repository view
-                                    fetch(`/repo/contents/?u={{ username }}&r={{ repo_name }}&p=${path}`)
-                                        .then(response => response.text())
-                                        .then(html => {
-                                            // Parse the HTML response to extract the contents
-                                            const parser = new DOMParser();
-                                            const doc = parser.parseFromString(html, 'text/html');
-                                            const newContents = doc.querySelector('.file-list').innerHTML;
-                                            
-                                            dirContents.innerHTML = newContents;
+                                    // Make a request to the API endpoint
+                                    fetch(`/auth/repo/api/contents/?u={{ username }}&r={{ repo_name }}&p=${path}`)
+                                        .then(response => response.json())
+                                        .then(contents => {
+                                            let html = '';
+                                            contents.forEach(item => {
+                                                html += `
+                                                    <div class="file-item" data-type="${item.type}" data-path="${item.path}">
+                                                        <i class="fas fa-${item.type === 'directory' ? 'folder' : 'file'} file-icon"></i>
+                                                        <span class="file-name">${item.name}</span>
+                                                    </div>
+                                                `;
+                                                if (item.type === 'directory') {
+                                                    html += `<div class="directory-contents" id="dir-${item.path.replace(/\//g, '-')}"></div>`;
+                                                }
+                                            });
+                                            dirContents.innerHTML = html;
                                             dirContents.setAttribute('data-loaded', 'true');
                                             // Add event listeners to new items
                                             addEventListenersToNewItems(dirContents);
@@ -143,14 +150,11 @@
                                 }
                                 dirContents.classList.add('show');
                             }
-                            console.log('Directory clicked:', path);
-                            console.log('Directory contents element:', dirContents);
-                            console.log('Current state:', dirContents.classList.contains('show') ? 'shown' : 'hidden');
                         }
                     } else {
-                        // Redirect to file view - fix the double slash issue
+                        // Redirect to file view with query parameters
                         const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-                        window.location.href = `/showfile/${cleanPath}`;
+                        window.location.href = `/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
                     }
                 });
             });
@@ -169,16 +173,23 @@
                                     dirContents.classList.remove('show');
                                 } else {
                                     if (!dirContents.hasAttribute('data-loaded')) {
-                                        // Make a request to the show_repository view
-                                        fetch(`/repo/contents/?u={{ username }}&r={{ repo_name }}&p=${path}`)
-                                            .then(response => response.text())
-                                            .then(html => {
-                                                // Parse the HTML response to extract the contents
-                                                const parser = new DOMParser();
-                                                const doc = parser.parseFromString(html, 'text/html');
-                                                const newContents = doc.querySelector('.file-list').innerHTML;
-                                                
-                                                dirContents.innerHTML = newContents;
+                                        // Make a request to the API endpoint
+                                        fetch(`/auth/repo/api/contents/?u={{ username }}&r={{ repo_name }}&p=${path}`)
+                                            .then(response => response.json())
+                                            .then(contents => {
+                                                let html = '';
+                                                contents.forEach(item => {
+                                                    html += `
+                                                        <div class="file-item" data-type="${item.type}" data-path="${item.path}">
+                                                            <i class="fas fa-${item.type === 'directory' ? 'folder' : 'file'} file-icon"></i>
+                                                            <span class="file-name">${item.name}</span>
+                                                        </div>
+                                                    `;
+                                                    if (item.type === 'directory') {
+                                                        html += `<div class="directory-contents" id="dir-${item.path.replace(/\//g, '-')}"></div>`;
+                                                    }
+                                                });
+                                                dirContents.innerHTML = html;
                                                 dirContents.setAttribute('data-loaded', 'true');
                                                 addEventListenersToNewItems(dirContents);
                                             });
@@ -187,9 +198,9 @@
                                 }
                             }
                         } else {
-                            // Redirect to file view - fix the double slash issue
+                            // Redirect to file view with query parameters
                             const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-                            window.location.href = `/showfile/${cleanPath}`;
+                            window.location.href = `/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
                         }
                     });
                 });
