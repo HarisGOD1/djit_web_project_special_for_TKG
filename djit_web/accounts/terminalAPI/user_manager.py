@@ -35,12 +35,6 @@ def create_user(username):
         if not check_flag:
             return problem
         else:
-            # print(username+" "+passwd)
-            # we are not need to use crypt.crypt
-            # we need only hash, provided by django app, and
-            # need specify salt in our system to work with it,
-            # or maybe overwrite django app to work with our salt
-            # sudo useradd --home /srv/git/UR/username1 --shell /usr/bin/git-shell username1
             print('trying to create user')
             repository_manager.create_directory__(f'/srv/git/UR/{username}')
             os.system(f"useradd --home /srv/git/UR/{username} --shell /user/bin/git-shell {username}")

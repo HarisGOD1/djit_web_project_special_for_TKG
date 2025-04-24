@@ -110,6 +110,50 @@ def create_repository(request):
 
     return HttpResponse(template.render(context,request))
 
-
-
+# @login_required(login_url='/auth/login/')
+def show_repository(request):
+    template = loader.get_template('registration/repo_contents.html')
+    
+    # Get parameters from request
+    username = request.GET.get('u')
+    repo_name = request.GET.get('r')
+    path = request.GET.get('p', '')  # Default to root if no path provided
+    
+    # TODO: Add code to fetch repository contents
+    # This is where you'll need to implement the logic to get files and directories
+    # The contents should be a list of dictionaries with:
+    # - type: 'file' or 'directory'
+    # - path: full path of the item
+    # - name: display name of the item
+    lst = repository_manager.get_content_from_path(username,repo_name,path)
+    contents = [
+        # Example structure:
+        # {'type': 'directory', 'path': 'src', 'name': 'src'},
+        # {'type': 'file', 'path': 'README.md', 'name': 'README.md'},
+    ]
+    print(lst)
+    for e in lst:
+        contents.append({'type':'directory' if e[0]=='tree' else 'file',
+                         'path':path+'/'+e[1],
+                         'name':e[1]})
+    # Split path into parts for breadcrumb navigation
+    print(contents)
+    path_parts = []
+    if path:
+        current_path = ''
+        for part in path.split('/'):
+            current_path = f"{current_path}/{part}" if current_path else part
+            path_parts.append({
+                'name': part,
+                'path': current_path
+            })
+    
+    context = {
+        'username': username,
+        'repo_name': repo_name,
+        'path_parts': path_parts,
+        'contents': contents
+    }
+    
+    return HttpResponse(template.render(context, request))
 

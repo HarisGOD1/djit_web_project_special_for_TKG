@@ -6,8 +6,8 @@ from . import user_manager
 allowed_ssh_symbols = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ+/=-@ '
 def save_ssh(username,sshkey_string):
 
-    if not user_manager.is_user_registered(username):
-        user_manager.create_user(username)
+    # if not user_manager.is_user_registered(username):
+    #     user_manager.create_user(username)
 
     b,p = user_manager.check_username(username)
     print(b, p)
