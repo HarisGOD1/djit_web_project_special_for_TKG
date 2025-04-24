@@ -9,7 +9,7 @@
     <!-- Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Highlight.js for syntax highlighting -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css" rel="stylesheet">
     <style>
         .navbar-custom {
             background-color: #24292e;
@@ -20,8 +20,8 @@
             border-bottom: 1px solid #e1e4e8;
         }
         .file-content {
-            background-color: #ffffff;
-            border: 1px solid #e1e4e8;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
             border-radius: 6px;
             margin-top: 20px;
             overflow-x: auto;
@@ -29,7 +29,7 @@
         .file-content pre {
             margin: 0;
             padding: 16px;
-            background-color: #ffffff;
+            background-color: #0d1117;
         }
         .breadcrumb {
             background-color: transparent;
@@ -45,9 +45,51 @@
         }
         .file-actions {
             margin-top: 20px;
+            margin-bottom: 20px;
         }
         .file-actions .btn {
             margin-right: 8px;
+        }
+        .language-selector {
+            margin-left: 10px;
+        }
+        .copy-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #30363d;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .copy-button:hover {
+            opacity: 1;
+        }
+        .code-container {
+            position: relative;
+        }
+        /* Custom scrollbar for code blocks */
+        pre::-webkit-scrollbar {
+            height: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+        /* Ensure proper line height and font */
+        pre code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -80,9 +122,36 @@
             <button class="btn btn-outline-primary" onclick="window.location.href='/auth/repo/?u={{ username }}&r={{ repo_name }}&p={{ path|urlencode }}'">
                 <i class="fas fa-folder"></i> View in Repository
             </button>
+            <select class="form-select language-selector" id="languageSelector" style="width: auto; display: inline-block;">
+                <option value="plaintext">Plain Text</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="csharp">C#</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="swift">Swift</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="typescript">TypeScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="markdown">Markdown</option>
+                <option value="json">JSON</option>
+                <option value="yaml">YAML</option>
+                <option value="bash">Bash</option>
+                <option value="sql">SQL</option>
+            </select>
         </div>
-        <div class="file-content">
-            <pre><code class="language-plaintext">{{ file_content }}</code></pre>
+        <div class="code-container">
+            <button class="copy-button" onclick="copyCode()">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+            <div class="file-content">
+                <pre><code id="codeContent" class="language-plaintext">{{ file_content }}</code></pre>
+            </div>
         </div>
     </div>
 
@@ -90,11 +159,85 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Highlight.js for syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/ruby.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/swift.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/kotlin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/sql.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize syntax highlighting
+            // Auto-detect language based on file extension
+            const fileName = '{{ file_name }}';
+            const extension = fileName.split('.').pop().toLowerCase();
+            const languageMap = {
+                'py': 'python',
+                'js': 'javascript',
+                'java': 'java',
+                'cpp': 'cpp',
+                'cs': 'csharp',
+                'php': 'php',
+                'rb': 'ruby',
+                'go': 'go',
+                'rs': 'rust',
+                'swift': 'swift',
+                'kt': 'kotlin',
+                'ts': 'typescript',
+                'html': 'html',
+                'css': 'css',
+                'md': 'markdown',
+                'json': 'json',
+                'yaml': 'yaml',
+                'yml': 'yaml',
+                'sh': 'bash',
+                'sql': 'sql'
+            };
+
+            const detectedLanguage = languageMap[extension] || 'plaintext';
+            document.getElementById('languageSelector').value = detectedLanguage;
+            
+            // Initialize Highlight.js
             hljs.highlightAll();
+            
+            // Update syntax highlighting
+            updateSyntaxHighlighting(detectedLanguage);
+
+            // Add event listener for language selector
+            document.getElementById('languageSelector').addEventListener('change', function() {
+                updateSyntaxHighlighting(this.value);
+            });
         });
+
+        function updateSyntaxHighlighting(language) {
+            const codeElement = document.getElementById('codeContent');
+            codeElement.className = `language-${language}`;
+            hljs.highlightElement(codeElement);
+        }
+
+        function copyCode() {
+            const codeContent = document.getElementById('codeContent').textContent;
+            navigator.clipboard.writeText(codeContent).then(() => {
+                const copyButton = document.querySelector('.copy-button');
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    copyButton.innerHTML = originalText;
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html> 
