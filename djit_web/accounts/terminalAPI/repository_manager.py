@@ -51,7 +51,7 @@ def get_file_from_path(username,reponame,path):
     try:
         # print(username,reponame,path)
         path = f'master:{path}'
-        cmd = f'git -C /srv/git/UR/{username}/{reponame}/{reponame}.git cat-file {path}'
+        cmd = f'sudo git -C /srv/git/UR/{username}/{reponame}/{reponame}.git cat-file blob {path}'
         # perform list of "...thegod:x:1000:1000:msigf66thegod,,,:/home/thegod:/bin/bash"
         # to list..."...thegod..."
         # for st in (subprocess.check_output(cmd, shell=True).decode('ascii')).split('\n'):

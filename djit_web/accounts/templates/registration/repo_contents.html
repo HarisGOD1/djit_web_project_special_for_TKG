@@ -154,7 +154,7 @@
                     } else {
                         // Redirect to file view with query parameters
                         const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-                        window.location.href = `/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
+                        window.location.href = `/auth/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
                     }
                 });
             });
@@ -200,7 +200,7 @@
                         } else {
                             // Redirect to file view with query parameters
                             const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-                            window.location.href = `/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
+                            window.location.href = `/auth/showfile?u={{ username }}&r={{ repo_name }}&p=${cleanPath}`;
                         }
                     });
                 });
