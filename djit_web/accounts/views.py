@@ -1,7 +1,9 @@
 # accounts/views.py
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.http import HttpResponse, JsonResponse
@@ -25,12 +27,19 @@ def profile_information(request):
     template = loader.get_template('registration/profile.html')
     user = request.user
     # djituser_ = user.djituser
+    userprofile = user
 
 
-    reps = user.djituser.repositories.all()
-    print(reps)
+    try:
+        profiles_username = request.GET['u']
+        userprofile = User.objects.get(username=profiles_username)
+    except KeyError:
+        pass
 
+    reps = userprofile.djituser.repositories.all()
+    # print(reps)
     context = {
+        'userprofile': userprofile,
         'user' : user,
         'repositories':reps
     }
@@ -42,7 +51,8 @@ def add_or_edit_ssh_key(request):
     template = loader.get_template('registration/ssh_setup.html')
     user = request.user
     context = {
-        'sshkeyform' : None
+        'user' : user,
+        'sshkeyform' : None,
     }
     if request.method == 'POST':
         sshkey_val = request.POST['sshkey']
@@ -53,9 +63,15 @@ def add_or_edit_ssh_key(request):
         return HttpResponse(f"Hello, {user.username}.\n{response}")
 
     else:
+        try:
+            must = True if request.GET['t'] == 'm' else False
+        except KeyError:
+            must = False
         form = SSHKeyForm()
         context = {
-            'sshkeyform': form
+            'user' : user,
+            'sshkeyform': form,
+            'must' : must
         }
 
 
@@ -103,10 +119,14 @@ def create_repository(request):
                                 f"\n <a href=\"/auth/profile\">here you can see your repositories</a>")
 
     else:
-        form = RepoCreateForm()
-        context = {
-            'repocreateform': form
-        }
+        if request.user.djituser.isSSHSetup:
+
+            form = RepoCreateForm()
+            context = {
+                'repocreateform': form
+            }
+        else:
+            return redirect('/auth/sshkey_add_edit?t=m')
 
 
     return HttpResponse(template.render(context,request))
@@ -122,33 +142,45 @@ def show_repository(request):
     
     # Get repository contents
     lst = get_content_from_path(username, repo_name, path)
-    contents = []
-    for e in lst:
-        contents.append({
-            'type': 'directory' if e[0] == 'tree' else 'file',
-            'path': path + '/' + e[1] if path else e[1],
-            'name': e[1]
-        })
-    
-    # Split path into parts for breadcrumb navigation
-    path_parts = []
-    if path:
-        current_path = ''
-        for part in path.split('/'):
-            current_path = f"{current_path}/{part}" if current_path else part
-            path_parts.append({
-                'name': part,
-                'path': current_path
+
+    if lst:
+        contents = []
+        for e in lst:
+            contents.append({
+                'type': 'directory' if e[0] == 'tree' else 'file',
+                'path': path + '/' + e[1] if path else e[1],
+                'name': e[1]
             })
-    
-    context = {
-        'username': username,
-        'repo_name': repo_name,
-        'path_parts': path_parts,
-        'contents': contents
-    }
-    
-    return HttpResponse(template.render(context, request))
+
+        # Split path into parts for breadcrumb navigation
+        path_parts = []
+        if path:
+            current_path = ''
+            for part in path.split('/'):
+                current_path = f"{current_path}/{part}" if current_path else part
+                path_parts.append({
+                    'name': part,
+                    'path': current_path
+                })
+        urequest = request.user
+        rep_obj = User.objects.get(username=username).djituser.repositories.get(repository_name=repo_name)
+
+        if(rep_obj.repository_privacy==False or username in rep_obj.members_name or urequest.name==username):
+
+            context = {
+                'username': username,
+                'repo_name': repo_name,
+                'path_parts': path_parts,
+                'contents': contents
+            }
+
+            return HttpResponse(template.render(context, request))
+        else:
+            template = loader.get_template('registration/content_unaviable.html')
+            return HttpResponse(template.render({'user' : request.user},request))
+    else:
+        template = loader.get_template('registration/content_unaviable.html')
+        return HttpResponse(template.render({'user' : request.user},request))
 
 @login_required(login_url='/auth/login/')
 def get_repository_contents(request):
@@ -172,18 +204,22 @@ def get_repository_contents(request):
 @login_required(login_url='/auth/login/')
 def show_file(request):
     template = loader.get_template('registration/fileshow.html')
-    
+
     # Get parameters from request
     username = request.GET.get('u')
     repo_name = request.GET.get('r')
     path = request.GET.get('p', '')
-    
+
     # Get file content
     file_content = get_file_from_path(username, repo_name, path)
-    
+
     # Get file name from path
     file_name = path.split('/')[-1] if path else ''
-    
+
+    # urequest = request.user
+    # rep_obj = User.objects.get(username=username).djituser.repositories.get(repository_name=repo_name)
+    # print(rep_obj,urequest)
+
     context = {
         'username': username,
         'repo_name': repo_name,
@@ -191,7 +227,7 @@ def show_file(request):
         'file_content': file_content,
         'path': path
     }
-    
+
+
+
     return HttpResponse(template.render(context, request))
-
-

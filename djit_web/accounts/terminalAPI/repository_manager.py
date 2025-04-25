@@ -44,8 +44,8 @@ def get_content_from_path(username,reponame,path):
                      subprocess.check_output(cmd, shell=True).decode('ascii').split('\n')[:-1]]
         return subs_list
     except subprocess.CalledProcessError as e:
-        print(f"error {e} error")
-        return f"Error creating user dir: {e}"
+        # print(f"error {e} error")
+        return False
 
 def get_file_from_path(username,reponame,path):
     try:
