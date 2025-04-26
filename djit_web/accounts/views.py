@@ -60,7 +60,10 @@ def add_or_edit_ssh_key(request):
         user.djituser.save()
 
         response = sshkey_manager.save_ssh(user.username,sshkey_val)
-        return HttpResponse(f"Hello, {user.username}.\n{response}")
+        if response == 'ssh add/edit success':
+            return redirect('/auth/success?s=ssh')
+        else:
+            return redirect('/auth/content_unaviable')
 
     else:
         try:
@@ -112,8 +115,11 @@ def create_repository(request):
             user.djituser.save()
             response = repository_manager.create_user_repository(user.username,reponame)
 
-            return HttpResponse(f"Hello, {user.username}.\n{response}")
+            return redirect(f'/auth/repo?u={user.username}&r={reponame}&p=')#HttpResponse(f"Hello, {user.username}.\n{response}")
         else:
+            if problem == 'repo yet existed':
+                return redirect(f'/auth/repo?u={user.username}&r={reponame}&p=')
+
             return HttpResponse(f"Hello, {user.username}.\n {problem}!"
                                 f"\n <a href=\"/auth/sshkey_add_edit\">here you can setup ssh</a>"
                                 f"\n <a href=\"/auth/profile\">here you can see your repositories</a>")
@@ -141,6 +147,7 @@ def show_repository(request):
     path = request.GET.get('p', '')  # Default to root if no path provided
     
     # Get repository contents
+    # print('repo exist output ' + str(repository_manager.is_repo_exists(username,repo_name)))
     lst = get_content_from_path(username, repo_name, path)
 
     if lst:
@@ -152,7 +159,6 @@ def show_repository(request):
                 'name': e[1]
             })
 
-        # Split path into parts for breadcrumb navigation
         path_parts = []
         if path:
             current_path = ''
@@ -176,11 +182,19 @@ def show_repository(request):
 
             return HttpResponse(template.render(context, request))
         else:
-            template = loader.get_template('registration/content_unaviable.html')
-            return HttpResponse(template.render({'user' : request.user},request))
+            return redirect('/auth/content_unaviable')
     else:
-        template = loader.get_template('registration/content_unaviable.html')
-        return HttpResponse(template.render({'user' : request.user},request))
+        if repository_manager.is_repo_exists(username,repo_name):
+            context = {
+                'username': username,
+                'repo_name': repo_name,
+                # 'path_parts': path_parts,
+                'contents': 'empty'
+            }
+            return HttpResponse(template.render(context, request))
+        else:
+            return redirect('/auth/content_unaviable')
+
 
 @login_required(login_url='/auth/login/')
 def get_repository_contents(request):
@@ -221,6 +235,7 @@ def show_file(request):
     # print(rep_obj,urequest)
 
     context = {
+        'user': request.user,
         'username': username,
         'repo_name': repo_name,
         'file_name': file_name,
@@ -231,3 +246,22 @@ def show_file(request):
 
 
     return HttpResponse(template.render(context, request))
+
+def successForward(request):
+    template = loader.get_template('registration/anything_success.html')
+    success = 'nothing'
+    try:
+        success = request.GET.get('s')
+    except KeyError:
+        pass
+
+    context = {
+        'user':request.user,
+        'success' : success
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def contentUnaviable(request):
+    template = loader.get_template('registration/content_unaviable.html')
+    return HttpResponse(template.render({'user': request.user}, request))

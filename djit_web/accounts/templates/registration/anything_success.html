@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Djit - succes</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'globalstyles.css' %}" rel="stylesheet">
+</head>
+<body>
+
+    {% include "headerchunk.html" %}
+    <!-- Main Content -->
+    <div class="container">
+        {% if success == 'ssh' %}
+            <h1> Grats! you setuped your ssh key</h1>
+            <h2>click <a href="/auth/repository_create">HERE</a> to create repository</h2>
+        {% endif %}
+
+        {% if success == 'repo' %}
+            <h1> Grats! you created your repository</h1>
+
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

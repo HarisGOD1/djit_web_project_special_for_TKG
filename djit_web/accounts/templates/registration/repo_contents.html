@@ -77,9 +77,13 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/">{{ username }}</a></li>
                     <li class="breadcrumb-item"><a href="/repo/{{ repo_name }}">{{ repo_name }}</a></li>
-                    {% for part in path_parts %}
-                    <li class="breadcrumb-item"><a href="/repo/{{ repo_name }}/tree/{{ part.path }}">{{ part.name }}</a></li>
-                    {% endfor %}
+                    {% if contents == 'empty' %}
+<!--                        <li>This git repository is empty</li>-->
+                    {% else %}
+                        {% for part in path_parts %}
+                        <li class="breadcrumb-item"><a href="/repo/{{ repo_name }}/tree/{{ part.path }}">{{ part.name }}</a></li>
+                        {% endfor %}
+                    {% endif %}
                 </ol>
             </nav>
         </div>
@@ -87,6 +91,10 @@
 
     <!-- Main Content -->
     <div class="container">
+        {% if contents == 'empty' %}
+        <h3>This git repository is empty</h3>
+        <h3>Make your first commit, via ssh connect to remote of this server</h3>
+        {% else %}
         <div class="file-list">
             {% for item in contents %}
             <div class="file-item" data-type="{{ item.type }}" data-path="{{ item.path }}">
@@ -104,6 +112,8 @@
             {% endif %}
             {% endfor %}
         </div>
+
+        {% endif %}
     </div>
 
     <!-- Bootstrap JS and dependencies -->

@@ -64,8 +64,18 @@ def get_file_from_path(username,reponame,path):
         return f"Error creating user dir: {e}"
 
 
-def is_repo_exists(repo_name):
-    return False
+def is_repo_exists(username,repo_name):
+    path = f'/srv/git/UR/{username}/{repo_name}'
+    cmd = f'ls {path}'
+    # perform list of "...thegod:x:1000:1000:msigf66thegod,,,:/home/thegod:/bin/bash"
+    # to list..."...thegod..."
+    # for st in (subprocess.check_output(cmd, shell=True).decode('ascii')).split('\n'):
+    #     print(repr(st))
+
+    file_content = subprocess.check_output(cmd, shell=True).decode('ascii')
+    # print(file_content)
+    return f'{repo_name}.git' in file_content
+
 def setup_bare():
     pass
 
