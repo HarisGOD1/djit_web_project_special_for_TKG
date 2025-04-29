@@ -14,27 +14,53 @@ def create_directory__(path):
         print(f"error {e} error")
         return f"Error creating user dir: {e}"
 
-def gitinitbare(username,reponame):
+def gitinitbare(username,reponame,repogroupname):
     try:
-        subprocess.run(['git','init','--bare', f'/srv/git/UR/{username}/{reponame}/{reponame}.git'], check=True)#git init --bare test_repo.git
-        print("success")
+        pathtorepo = f'/srv/git/UR/{username}/{reponame}/{reponame}.git'
+        # subprocess.run(['git', 'init', f'/srv/git/UR/{username}/{reponame}/{reponame}.git'], check=True)
+        # /\ this will create repo with root root access
+        # 'gr'+repo.uid = repogroupname
+        # inition a group for spec repo
+        # print('1')
+        subprocess.run(['sudo', 'groupadd', repogroupname], check=True)
+        subprocess.run(['sudo', 'usermod','-aG', repogroupname, username], check=True)
+        subprocess.run(['sudo', 'usermod', '-aG', repogroupname, 'root'], check=True)
+        # print('1')
+        # owe repo to gr
+        subprocess.run(['sudo', 'mkdir', '-p', pathtorepo], check=True)
+        subprocess.run(
+            ['sudo', 'git', 'init', '--bare', '--shared=group', pathtorepo],
+            check=True)  # git init --bare test_repo.git
+        # print('1')
+        # setup the spermissions
+        subprocess.run(['sudo', 'chgrp', '-R', repogroupname, pathtorepo], check=True)
+        subprocess.run(['sudo', 'chmod', '-R','g+ws', pathtorepo], check=True)
+        subprocess.run(['sudo', 'chmod', '-R','g+rs', pathtorepo], check=True)
+        subprocess.run(['sudo', 'chmod', '-R','g+xs', pathtorepo], check=True)
+        print('1')
+
+        subprocess.run(['sudo', 'chown', '-R', username, f'/srv/git/UR/{username}/{reponame}'], check=True)
+        subprocess.run(['sudo', 'git', 'config', '--global', '--add', 'safe.directory', pathtorepo], check=True)
+        print('1')
+
+        print("success", username, reponame)
         return f"repository '{reponame}' created successfully."
     except subprocess.CalledProcessError as e:
         print(f"error {e} error")
         return f"Error creating user dir: {e}"
 
-def create_user_repository(username,repository_name):
+def create_user_repository(username,repository_name,repogroupname):
     # make sure repository is not exist
     # setup rights
     out1 = create_directory__(f'/srv/git/UR/{username}') + create_directory__(f'/srv/git/UR/{username}/{repository_name}')
-    out2 = gitinitbare(username,repository_name)
+    out2 = gitinitbare(username,repository_name,repogroupname)
     return out1+' '+out2
 
 def get_content_from_path(username,reponame,path):
     try:
         # print(username,reponame,path)
         path = 'master' if path=='/'or path=='' else f'master:{path}'
-        cmd = f'git -C /srv/git/UR/{username}/{reponame}/{reponame}.git ls-tree {path} -l'
+        cmd = f'sudo -u {username} git -C /srv/git/UR/{username}/{reponame}/{reponame}.git ls-tree {path} -l'
         # perform list of "...thegod:x:1000:1000:msigf66thegod,,,:/home/thegod:/bin/bash"
         # to list..."...thegod..."
         # for st in (subprocess.check_output(cmd, shell=True).decode('ascii')).split('\n'):
@@ -51,7 +77,7 @@ def get_file_from_path(username,reponame,path):
     try:
         # print(username,reponame,path)
         path = f'master:{path}'
-        cmd = f'sudo git -C /srv/git/UR/{username}/{reponame}/{reponame}.git cat-file blob {path}'
+        cmd = f'sudo -u {username} git -C /srv/git/UR/{username}/{reponame}/{reponame}.git cat-file blob {path}'
         # perform list of "...thegod:x:1000:1000:msigf66thegod,,,:/home/thegod:/bin/bash"
         # to list..."...thegod..."
         # for st in (subprocess.check_output(cmd, shell=True).decode('ascii')).split('\n'):

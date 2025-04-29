@@ -12,5 +12,6 @@ urlpatterns = [
     path('repo/api/contents/', views.get_repository_contents, name='name_for_get_repository_contents'),
     path('showfile/', views.show_file, name='name_for_show_file'),
     path('content_unaviable/',views.contentUnaviable,name='name_for_content_unaviable'),
-    path('success/',views.successForward, name='name_for_success')
+    path('success/',views.successForward, name='name_for_success'),
+    path('public/',views.show_public_repositories,name='name_for_show_public_repositories')
 ] + static('/accounts/templates/static/')

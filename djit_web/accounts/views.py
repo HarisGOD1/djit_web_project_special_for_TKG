@@ -14,6 +14,7 @@ from .terminalAPI import repository_manager
 from .forms import SSHKeyForm, RepoCreateForm
 from .models import Repository, DjitUser
 from .terminalAPI.repository_manager import get_content_from_path, get_file_from_path
+from django.core.paginator import Paginator
 
 
 class SignUpView(CreateView):
@@ -29,7 +30,6 @@ def profile_information(request):
     # djituser_ = user.djituser
     userprofile = user
 
-
     try:
         profiles_username = request.GET['u']
         userprofile = User.objects.get(username=profiles_username)
@@ -40,26 +40,27 @@ def profile_information(request):
     # print(reps)
     context = {
         'userprofile': userprofile,
-        'user' : user,
-        'repositories':reps
+        'user': user,
+        'repositories': reps
     }
 
-    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))
+
 
 @login_required(login_url='/auth/login/')
 def add_or_edit_ssh_key(request):
     template = loader.get_template('registration/ssh_setup.html')
     user = request.user
     context = {
-        'user' : user,
-        'sshkeyform' : None,
+        'user': user,
+        'sshkeyform': None,
     }
     if request.method == 'POST':
         sshkey_val = request.POST['sshkey']
-        user.djituser.isSSHSetup=True
+        user.djituser.isSSHSetup = True
         user.djituser.save()
 
-        response = sshkey_manager.save_ssh(user.username,sshkey_val)
+        response = sshkey_manager.save_ssh(user.username, sshkey_val)
         if response == 'ssh add/edit success':
             return redirect('/auth/success?s=ssh')
         else:
@@ -72,13 +73,12 @@ def add_or_edit_ssh_key(request):
             must = False
         form = SSHKeyForm()
         context = {
-            'user' : user,
+            'user': user,
             'sshkeyform': form,
-            'must' : must
+            'must': must
         }
 
-
-    return HttpResponse(template.render(context,request))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/auth/login/')
@@ -86,14 +86,14 @@ def create_repository(request):
     template = loader.get_template('registration/repocreate.html')
     user = request.user
     context = {
-        'repocreateform' : None,
+        'repocreateform': None,
     }
     # TO-DO move these logics to service file
     if request.method == 'POST':
         reponame = request.POST['reponame']
         description = request.POST['description']
         visibility = request.POST['visibility']
-        isprivate = True if visibility=='private' else False
+        isprivate = True if visibility == 'private' else False
 
         # print(user.djituser.objects.all())
         fl = user.djituser.isSSHSetup
@@ -102,6 +102,7 @@ def create_repository(request):
         for e in user.djituser.repositories.all():
             if e.repository_name == reponame:
                 problem = 'repo yet existed'
+                print(e.repository_name)
                 fl = False
 
         if fl:
@@ -113,9 +114,10 @@ def create_repository(request):
             repo.save()
             user.djituser.repositories.add(repo)
             user.djituser.save()
-            response = repository_manager.create_user_repository(user.username,reponame)
-
-            return redirect(f'/auth/repo?u={user.username}&r={reponame}&p=')#HttpResponse(f"Hello, {user.username}.\n{response}")
+            response = repository_manager.create_user_repository(user.username, reponame,'gr'+str(repo.id))
+            print(response)
+            return redirect(
+                f'/auth/repo?u={user.username}&r={reponame}&p=')  # HttpResponse(f"Hello, {user.username}.\n{response}")
         else:
             if problem == 'repo yet existed':
                 return redirect(f'/auth/repo?u={user.username}&r={reponame}&p=')
@@ -134,18 +136,18 @@ def create_repository(request):
         else:
             return redirect('/auth/sshkey_add_edit?t=m')
 
+    return HttpResponse(template.render(context, request))
 
-    return HttpResponse(template.render(context,request))
 
 @login_required(login_url='/auth/login/')
 def show_repository(request):
     template = loader.get_template('registration/repo_contents.html')
-    
+
     # Get parameters from request
     username = request.GET.get('u')
     repo_name = request.GET.get('r')
     path = request.GET.get('p', '')  # Default to root if no path provided
-    
+
     # Get repository contents
     # print('repo exist output ' + str(repository_manager.is_repo_exists(username,repo_name)))
     lst = get_content_from_path(username, repo_name, path)
@@ -171,9 +173,10 @@ def show_repository(request):
         urequest = request.user
         rep_obj = User.objects.get(username=username).djituser.repositories.get(repository_name=repo_name)
 
-        if(rep_obj.repository_privacy==False or username in rep_obj.members_name or urequest.name==username):
+        if (rep_obj.repository_privacy == False or username in rep_obj.members_name or urequest.name == username):
 
             context = {
+                'user': request.user,
                 'username': username,
                 'repo_name': repo_name,
                 'path_parts': path_parts,
@@ -184,8 +187,9 @@ def show_repository(request):
         else:
             return redirect('/auth/content_unaviable')
     else:
-        if repository_manager.is_repo_exists(username,repo_name):
+        if repository_manager.is_repo_exists(username, repo_name):
             context = {
+                'user': request.user,
                 'username': username,
                 'repo_name': repo_name,
                 # 'path_parts': path_parts,
@@ -202,7 +206,7 @@ def get_repository_contents(request):
     username = request.GET.get('u')
     repo_name = request.GET.get('r')
     path = request.GET.get('p', '')  # Default to root if no path provided
-    
+
     # Get repository contents
     lst = get_content_from_path(username, repo_name, path)
     contents = []
@@ -212,8 +216,9 @@ def get_repository_contents(request):
             'path': path + '/' + e[1] if path else e[1],
             'name': e[1]
         })
-    
+
     return JsonResponse(contents, safe=False)
+
 
 @login_required(login_url='/auth/login/')
 def show_file(request):
@@ -233,19 +238,25 @@ def show_file(request):
     # urequest = request.user
     # rep_obj = User.objects.get(username=username).djituser.repositories.get(repository_name=repo_name)
     # print(rep_obj,urequest)
-
+    collected_path = ''
+    # def appendtocollectedpath(collected_path,subf):
+    #     print(collected_path)
+    #     collected_path=collected_path+'/'+subf
+    #     return collected_path
+    path_parts = [{'name':subf,'path':(collected_path:=collected_path+'/'+subf)[1:]} for subf in path.split('/')[:-1]]
+    # print(path_parts)
     context = {
         'user': request.user,
         'username': username,
         'repo_name': repo_name,
         'file_name': file_name,
         'file_content': file_content,
-        'path': path
+        'path': path,
+        'path_parts':path_parts
     }
 
-
-
     return HttpResponse(template.render(context, request))
+
 
 def successForward(request):
     template = loader.get_template('registration/anything_success.html')
@@ -256,12 +267,36 @@ def successForward(request):
         pass
 
     context = {
-        'user':request.user,
-        'success' : success
+        'user': request.user,
+        'success': success
     }
 
     return HttpResponse(template.render(context, request))
 
+
 def contentUnaviable(request):
     template = loader.get_template('registration/content_unaviable.html')
     return HttpResponse(template.render({'user': request.user}, request))
+
+def show_public_repositories(request):
+
+    template = loader.get_template('registration/repos_paging.html')
+    number_page=int(request.GET['p'])
+    number_items=int(request.GET['c'])
+
+    p = Paginator(Repository.objects.filter(repository_privacy=False).all(), number_items)
+
+    if p.num_pages < number_page or number_page<1:
+        return HttpResponse("<h1>End of list!</h1>")
+
+    page = p.page(number_page)
+    context = {
+            'user': request.user,
+            'repositories': page.object_list,
+            'page': page,
+            'number_items':number_items,
+            'number_page':number_page
+        }
+
+
+    return HttpResponse(template.render(context, request))

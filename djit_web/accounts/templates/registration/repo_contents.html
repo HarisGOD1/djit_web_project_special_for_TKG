@@ -75,7 +75,11 @@
         <div class="container">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">{{ username }}</a></li>
+                    {% if username == user.username %}
+                    <li class="breadcrumb-item"><a href="/auth/profile">{{ username }}</a></li>
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="/auth/profile?u={{ username }}">{{ username }}</a></li>
+                    {% endif %}
                     <li class="breadcrumb-item"><a href="/repo/{{ repo_name }}">{{ repo_name }}</a></li>
                     {% if contents == 'empty' %}
 <!--                        <li>This git repository is empty</li>-->

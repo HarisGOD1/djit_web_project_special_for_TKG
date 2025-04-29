@@ -37,7 +37,7 @@ def create_user(username):
         else:
             print('trying to create user')
             repository_manager.create_directory__(f'/srv/git/UR/{username}')
-            os.system(f"useradd --home /srv/git/UR/{username} --shell /user/bin/git-shell {username}")
+            os.system(f"useradd --home /srv/git/UR/{username} --shell /usr/bin/git-shell {username}")
             return f"USER_{username}_CREATED"
     except subprocess.CalledProcessError as e:
         print(e.output)
