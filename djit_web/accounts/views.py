@@ -1,4 +1,6 @@
 # accounts/views.py
+import sys
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -300,3 +302,141 @@ def show_public_repositories(request):
 
 
     return HttpResponse(template.render(context, request))
+
+# TODO:
+# - settings:
+#       user delete     |   must delete user from server and all owned by him repos
+#       user add bio    |   must update bio
+#       repo delete     |   must delete repo and its included user group
+#       repo add member |   must add member in list and included user group
+
+def settings(request):
+    template = loader.get_template('registration/settings.html')
+    user = request.user
+    repos = user.djituser.repositories.all()
+    context = {
+        'user':user,
+        'repositories':repos,
+        'bio': user.djituser.bio
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def update_user_bio(request):
+    newbio = request.POST['newbio']
+    djituser = request.user.djituser
+    djituser.bio = newbio
+    djituser.save()
+    return redirect('/auth/profile')
+
+def delete_repo(request):
+    reponame = request.POST['reponame']
+    user = request.user
+    djituser = user.djituser
+    flag = False
+    for repo in djituser.repositories.all():
+        if repo.repository_name == reponame:
+            flag = True
+            # sudo rm rf
+            try:
+                repository_manager.sudormrf_user_dir(user.username,reponame)
+            except Exception as e:
+                print(e)
+            # sudo delete group
+            try:
+                repository_manager.delete_group("gr"+str(repo.id))
+            except Exception as e:
+                print(e)
+            # repo.delete()
+            repo.delete()
+            return redirect('/auth/success?s=repodel')
+
+    if not flag:
+        return redirect('/auth/content_unaviable')
+
+    return None
+
+def add_repo_member(request):
+    reponame = request.POST['reponame']
+    user = request.user
+    djituser = user.djituser
+    member_add_name = request.POST['newmembername']
+    member_add = ''
+    try:
+        member_add = User.objects.get(username=member_add_name)
+    except Exception as e:
+        return JsonResponse({'success':0,'error':'user with username not exist'}, safe=False)
+
+    flag = False
+    for repo in djituser.repositories.all():
+        if repo.repository_name == reponame:
+            flag = True
+            # add in repo's members list
+            repo.members_name.append(member_add_name)
+            repo.save()
+            # add in group
+            repository_manager.add_user_in_group('gr'+str(repo.id),member_add_name)
+            response_data = {}
+            response_data['success'] = True
+            return JsonResponse({'success':1}, safe=False)
+
+    if not flag:
+        return JsonResponse({'success':0}, safe=False)
+
+    return None
+
+def kick_repo_member(request):
+    reponame = request.POST['reponame']
+    user = request.user
+    djituser = user.djituser
+    member_add_name = request.POST['delmembername']
+    member_add = ''
+    try:
+        member_add = User.objects.get(username=member_add_name)
+    except Exception as e:
+        return 'member`s username dont exist'
+
+    flag = False
+    for repo in djituser.repositories.all():
+        if repo.repository_name == reponame:
+            flag = True
+            # remove from repo's members list
+            repo.members_name.remove(member_add_name)
+            repo.save()
+            # delete from group
+            repository_manager.delete_user_from_group('gr'+str(repo.id),member_add_name)
+            return redirect('/auth/success?s=removemember')
+
+    if not flag:
+        return redirect('/auth/content_unaviable')
+
+    return None
+
+def update_repo(request):
+    reponame = request.POST['reponame']
+    desc = request.POST['desc']
+    privacy = True if request.POST['visibility'] == 'private' else False
+    user = request.user
+    djituser = user.djituser
+
+    flag = False
+    for repo in djituser.repositories.all():
+        if repo.repository_name == reponame:
+            flag = True
+            # change visibility in repo
+            # change desc in repo
+            repo.repository_description = desc
+            repo.repository_privacy = privacy
+            repo.save()
+            # change directory rights
+            if privacy == True:
+                repository_manager.make_dir_private(user.username,reponame)
+            else:
+                repository_manager.make_dir_public(user.username,reponame)
+            return redirect('/auth/success?s=removemember')
+
+    if not flag:
+        return redirect('/auth/content_unaviable')
+
+    return None
+

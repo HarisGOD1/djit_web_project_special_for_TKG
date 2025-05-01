@@ -13,5 +13,12 @@ urlpatterns = [
     path('showfile/', views.show_file, name='name_for_show_file'),
     path('content_unaviable/',views.contentUnaviable,name='name_for_content_unaviable'),
     path('success/',views.successForward, name='name_for_success'),
-    path('public/',views.show_public_repositories,name='name_for_show_public_repositories')
+    path('public/',views.show_public_repositories,name='name_for_show_public_repositories'),
+    path('profile/settings/',views.settings,name='name_for_settings'),
+    path('profile/settings/updatebio/',views.update_user_bio,name='name_for_update_user_bio'),
+    path('profile/settings/delete_repo/',views.delete_repo,name='name_for_delete_repo'),
+    path('profile/settings/add_member/', views.add_repo_member, name='name_for_add_repo_member'),
+    path('profile/settings/remove_member/', views.kick_repo_member, name='name_for_kick_repo_member'),
+    path('profile/settings/update_repo/', views.update_repo, name='name_for_update_repo')
+
 ] + static('/accounts/templates/static/')

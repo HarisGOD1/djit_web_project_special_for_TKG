@@ -105,5 +105,39 @@ def is_repo_exists(username,repo_name):
 def setup_bare():
     pass
 
+def sudormrf_user_dir(username,dirname):
+    path = f'/srv/git/UR/{username}/{dirname}'
+    cmd = f'sudo rm -rf {path}'
+
+    output = subprocess.check_output(cmd, shell=True).decode('ascii')
+
+def delete_group(repogroupname):
+    cmd = f'sudo groupdel {repogroupname}'
+
+    output = subprocess.check_output(cmd, shell=True).decode('ascii')
+
+def add_user_in_group(groupname,membername):
+    # sanitize inputs
+    subprocess.run(['sudo', 'usermod', '-aG', groupname, membername], check=True)
+
+def delete_user_from_group(groupname,membername):
+    # sanitize inputs
+    # gpasswd - -delete
+    # user
+    # group
+    subprocess.run(['sudo', 'gpasswd', '--delete', membername,groupname], check=True)
+
+def setup_dir_rights(path:str,rights:int):
+    subprocess.run(['sudo', 'chmod', '-R', str(rights), path], check=True)
+
+
+def make_dir_private(username,reponame):
+    setup_dir_rights(f'/srv/git/UR/{username}/{reponame}',770)
+
+
+def make_dir_public(username,reponame):
+    setup_dir_rights(f'/srv/git/UR/{username}/{reponame}',775)
+
 if __name__ == '__main__':
-    create_user_repository('user','dir')
+    # create_user_repository('user','dir')
+    pass
