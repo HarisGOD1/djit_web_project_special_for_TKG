@@ -17,7 +17,7 @@ from .forms import SSHKeyForm, RepoCreateForm
 from .models import Repository, DjitUser
 from .terminalAPI.repository_manager import get_content_from_path, get_file_from_path
 from django.core.paginator import Paginator
-
+from .terminalAPI.api_request import get_response as get_response_commit_gen
 
 class SignUpView(CreateView):
     form_class = UserCreationForm
@@ -174,7 +174,7 @@ def show_repository(request):
                 })
         urequest = request.user
         rep_obj = User.objects.get(username=username).djituser.repositories.get(repository_name=repo_name)
-
+        generated_commit = get_response_commit_gen(username,repo_name)
         if (rep_obj.repository_privacy == False or username in rep_obj.members_name or urequest.name == username):
 
             context = {
@@ -182,7 +182,8 @@ def show_repository(request):
                 'username': username,
                 'repo_name': repo_name,
                 'path_parts': path_parts,
-                'contents': contents
+                'contents': contents,
+                'commit_gen': generated_commit
             }
 
             return HttpResponse(template.render(context, request))

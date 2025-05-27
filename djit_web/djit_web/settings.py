@@ -88,7 +88,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'djitwebdb',
         'USER': 'postgres',
-        'PASSWORD': thegodpsql_pswd,
+        'PASSWORD': "thegodpsql_pswd",
         'HOST': '127.0.0.1',
         'PORT': '5432'
     }
